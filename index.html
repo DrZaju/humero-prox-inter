@@ -1,538 +1,382 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>Húmero proximal | Modelo 3D interactivo</title>
 
+<script src="https://static.sketchfab.com/api/sketchfab-viewer-1.12.1.js"></script>
+
 <style>
+    * {
+        box-sizing: border-box;
+    }
 
-* {
-    box-sizing: border-box;
-}
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: #f4f6f8;
+        color: #243447;
+    }
 
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: #f4f4f4;
-}
+    header {
+        background: #17324d;
+        color: white;
+        padding: 18px 24px;
+        text-align: center;
+    }
 
-.container {
-    display: flex;
-    width: 100vw;
-    height: 100vh;
-}
+    header h1 {
+        margin: 0;
+        font-size: 23px;
+    }
 
-.viewer {
-    flex: 1;
-    min-width: 0;
-    background: #111;
-}
-
-iframe {
-    width: 100%;
-    height: 100%;
-    border: 0;
-}
-
-.panel {
-    width: 330px;
-    padding: 22px;
-    background: white;
-    box-shadow: -2px 0 8px #0002;
-    overflow-y: auto;
-}
-
-h2 {
-    font-size: 21px;
-    margin: 0 0 14px;
-    color: #222;
-}
-
-p {
-    font-size: 14px;
-    color: #444;
-    line-height: 1.6;
-}
-
-button {
-    display: block;
-    width: 100%;
-    padding: 13px;
-    margin-bottom: 10px;
-    border: 1px solid #ccc;
-    border-radius: 7px;
-    background: #f7f7f7;
-    text-align: left;
-    cursor: pointer;
-    font-size: 14px;
-    transition: background 0.2s;
-}
-
-button:hover {
-    background: #e8eff8;
-}
-
-button:disabled {
-    opacity: 0.5;
-    cursor: wait;
-}
-
-button.active {
-    background: #e4f3e8;
-    border-color: #80b894;
-}
-
-button.inactive {
-    background: #f7e6e6;
-    border-color: #d6aaaa;
-}
-
-.main {
-    font-weight: bold;
-    background: #e6f0ff;
-}
-
-#status {
-    font-size: 12px;
-    color: #555;
-    margin-bottom: 15px;
-}
-
-.note {
-    font-size: 12px;
-    color: #777;
-    margin-top: 20px;
-}
-
-@media (max-width: 700px) {
+    header p {
+        margin: 7px 0 0;
+        font-size: 14px;
+        color: #dce5ee;
+    }
 
     .container {
-        flex-direction: column;
-        height: 100dvh;
+        display: flex;
+        height: calc(100vh - 94px);
+        min-height: 500px;
     }
 
     .viewer {
-        min-height: 55%;
+        flex: 1;
+        min-width: 0;
+        background: #e5e9ed;
+    }
+
+    iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
     }
 
     .panel {
-        width: 100%;
-        flex: 1;
-        box-shadow: 0 -2px 8px #0002;
+        width: 290px;
+        padding: 22px;
+        background: white;
+        border-left: 1px solid #ddd;
+        overflow-y: auto;
     }
 
-}
+    h2 {
+        font-size: 17px;
+        margin: 0 0 15px;
+    }
 
+    h3 {
+        font-size: 14px;
+        margin: 24px 0 12px;
+        color: #526477;
+    }
+
+    button {
+        display: block;
+        width: 100%;
+        padding: 12px;
+        margin-bottom: 10px;
+        border: 1px solid #cbd5df;
+        border-radius: 7px;
+        background: #f1f3f5;
+        color: #334155;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    button:hover:not(:disabled) {
+        background: #dce6ef;
+    }
+
+    button.active {
+        background: #167347;
+        color: white;
+        border-color: #167347;
+    }
+
+    button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .reset {
+        background: #17324d;
+        color: white;
+        border-color: #17324d;
+    }
+
+    .reset:hover:not(:disabled) {
+        background: #284d70;
+    }
+
+    .status {
+        margin-top: 20px;
+        padding: 12px;
+        background: #eef3f7;
+        border-radius: 6px;
+        font-size: 12px;
+        line-height: 1.5;
+    }
+
+    @media (max-width: 750px) {
+        .container {
+            flex-direction: column;
+            height: auto;
+        }
+
+        .viewer {
+            height: 55vh;
+            min-height: 350px;
+            flex: none;
+        }
+
+        .panel {
+            width: 100%;
+            border-left: none;
+        }
+    }
 </style>
 </head>
 
 <body>
 
+<header>
+    <h1>Húmero proximal | Modelo 3D interactivo</h1>
+    <p>Visualización anatómica para planificación quirúrgica</p>
+</header>
+
 <div class="container">
 
     <div class="viewer">
-
-        <iframe
-            id="api-frame"
-            title="Modelo tridimensional de húmero proximal"
-            allow="autoplay; fullscreen; xr-spatial-tracking"
-            allowfullscreen>
-        </iframe>
-
+        <iframe id="api-frame" allow="autoplay; fullscreen; xr-spatial-tracking" allowfullscreen></iframe>
     </div>
 
     <aside class="panel">
 
-        <h2>Húmero proximal — Modelo 3D interactivo</h2>
+        <h2>Control de estructuras</h2>
 
-        <p>
-            Reconstrucción tridimensional del húmero proximal
-            con componente tumoral para evaluación anatómica
-            y planificación quirúrgica.
-        </p>
-
-        <div id="status">
-            Cargando modelo...
-        </div>
-
-        <button class="control" data-node="lateral" disabled>
-            Mostrar / ocultar húmero lateral
+        <button id="btn-medial" onclick="toggleStructure('medial')" disabled>
+            Húmero medial
         </button>
 
-        <button class="control" data-node="medial" disabled>
-            Mostrar / ocultar húmero medial
+        <button id="btn-lateral" onclick="toggleStructure('lateral')" disabled>
+            Húmero lateral
         </button>
 
-        <button class="control" data-node="tumor" disabled>
-            Mostrar / ocultar tumor
+        <button id="btn-tumor" onclick="toggleStructure('tumor')" disabled>
+            Tumor
         </button>
 
-        <button class="control main" id="show-all" disabled>
+        <h3>Aislar estructuras</h3>
+
+        <button onclick="isolate('medial')" disabled>
+            Solo húmero medial
+        </button>
+
+        <button onclick="isolate('lateral')" disabled>
+            Solo húmero lateral
+        </button>
+
+        <button onclick="isolate('tumor')" disabled>
+            Solo tumor
+        </button>
+
+        <button class="reset" onclick="showAll()" disabled>
             Mostrar todo
         </button>
 
-        <button class="control main" id="hide-tumor" disabled>
-            Ocultar tumor
-        </button>
-
-        <button class="control main" id="only-tumor" disabled>
-            Mostrar solo tumor
-        </button>
-
-        <p class="note">
-            Modelo tridimensional para apoyo en planificación quirúrgica.
-            No sustituye la evaluación de los estudios radiológicos originales.
-        </p>
+        <div class="status" id="status">
+            Cargando modelo 3D...
+        </div>
 
     </aside>
 
 </div>
 
-<script src="https://static.sketchfab.com/api/sketchfab-viewer-1.12.1.js"></script>
-
 <script>
 
-// ============================================
-// CONFIGURACIÓN
-// ============================================
+const MODEL_UID = "a8138671e7894bb9abd2950221cb03c2";
 
-const MODEL_UID = 'a8138671e7894bb9abd2950221cb03c2';
+const iframe = document.getElementById("api-frame");
 
-const iframe = document.getElementById('api-frame');
-
-const statusElement = document.getElementById('status');
+const client = new Sketchfab("1.12.1", iframe);
 
 let api = null;
-
-// Nombres originales de los grupos de Sketchfab
+let ready = false;
+let busy = false;
 
 const structures = {
-
-    lateral: {
-        groupName: 'HumeroLatS',
-        geometryIds: [],
-        visible: true
-    },
-
     medial: {
-        groupName: 'HumeroMedS',
-        geometryIds: [],
+        name: "HumeroMedS",
+        id: null,
         visible: true
     },
-
+    lateral: {
+        name: "HumeroLatS",
+        id: null,
+        visible: true
+    },
     tumor: {
-        groupName: 'HumeroTumS',
-        geometryIds: [],
+        name: "HumeroTumS",
+        id: null,
         visible: true
     }
-
 };
 
-// ============================================
-// ESTADO
-// ============================================
-
 function setStatus(message) {
-
-    statusElement.textContent = message;
-
+    document.getElementById("status").textContent = message;
 }
 
-// ============================================
-// OBTENER GEOMETRÍAS DESCENDIENTES
-// ============================================
+function findGroup(node, name) {
 
-function collectGeometries(node, result = []) {
-
-    if (!node) {
-        return result;
-    }
-
-    if (
-        node.type === 'Geometry' &&
-        node.instanceID !== undefined
-    ) {
-
-        result.push(node.instanceID);
-
-    }
-
-    if (Array.isArray(node.children)) {
-
-        node.children.forEach(child => {
-
-            collectGeometries(child, result);
-
-        });
-
-    }
-
-    return result;
-
-}
-
-// ============================================
-// BUSCAR GRUPO POR NOMBRE
-// ============================================
-
-function findNodeByName(node, name) {
-
-    if (!node) {
-        return null;
-    }
-
-    if (
-        node.name === name &&
-        node.type === 'Group'
-    ) {
-
+    if (node.name === name && node.type === "Group") {
         return node;
-
     }
 
     if (Array.isArray(node.children)) {
 
         for (const child of node.children) {
 
-            const found = findNodeByName(child, name);
+            const found = findGroup(child, name);
 
             if (found) {
                 return found;
             }
-
         }
-
     }
 
     return null;
-
 }
-
-// ============================================
-// MOSTRAR / OCULTAR ESTRUCTURA
-// ============================================
-
-function setVisibility(key, show) {
-
-    const structure = structures[key];
-
-    if (
-        !api ||
-        !structure ||
-        structure.geometryIds.length === 0
-    ) {
-        return;
-    }
-
-    const method = show ? 'show' : 'hide';
-
-    structure.geometryIds.forEach(id => {
-
-        api[method](id);
-
-    });
-
-    structure.visible = show;
-
-    updateButtons();
-
-}
-
-// ============================================
-// ALTERNAR VISIBILIDAD
-// ============================================
-
-function toggleStructure(key) {
-
-    const structure = structures[key];
-
-    if (!structure) {
-        return;
-    }
-
-    setVisibility(key, !structure.visible);
-
-}
-
-// ============================================
-// ACTUALIZAR BOTONES
-// ============================================
 
 function updateButtons() {
 
-    document.querySelectorAll('[data-node]').forEach(button => {
+    for (const key of Object.keys(structures)) {
 
-        const key = button.dataset.node;
+        const button = document.getElementById("btn-" + key);
+
+        button.classList.toggle(
+            "active",
+            structures[key].visible
+        );
+
+        button.textContent =
+            (structures[key].visible ? "● " : "○ ") +
+            (
+                key === "medial" ? "Húmero medial" :
+                key === "lateral" ? "Húmero lateral" :
+                "Tumor"
+            );
+    }
+}
+
+function setControlsEnabled(enabled) {
+
+    document.querySelectorAll("button").forEach(button => {
+        button.disabled = !enabled;
+    });
+}
+
+function applyVisibility(key, visible) {
+
+    return new Promise((resolve, reject) => {
 
         const structure = structures[key];
 
-        if (!structure) {
+        if (structure.id === null) {
+            reject(new Error("No se encontró " + structure.name));
             return;
         }
 
-        button.classList.toggle(
-            'active',
-            structure.visible
-        );
+        const callback = function(error) {
 
-        button.classList.toggle(
-            'inactive',
-            !structure.visible
-        );
+            if (error) {
+                reject(error);
+            } else {
+                structure.visible = visible;
+                resolve();
+            }
+        };
 
-        button.setAttribute(
-            'aria-pressed',
-            String(structure.visible)
-        );
+        if (visible) {
+            api.show(structure.id, callback);
+        } else {
+            api.hide(structure.id, callback);
+        }
 
     });
-
 }
 
-// ============================================
-// MOSTRAR TODO
-// ============================================
+async function changeVisibility(changes) {
 
-function showAll() {
+    if (!ready || busy) {
+        return;
+    }
 
-    Object.keys(structures).forEach(key => {
+    busy = true;
+    setControlsEnabled(false);
 
-        setVisibility(key, true);
+    try {
 
-    });
+        // Se ejecutan las operaciones secuencialmente.
+        for (const [key, visible] of Object.entries(changes)) {
 
-}
-
-// ============================================
-// OCULTAR TUMOR
-// ============================================
-
-function hideTumor() {
-
-    setVisibility('tumor', false);
-
-}
-
-// ============================================
-// MOSTRAR SOLO TUMOR
-// ============================================
-
-function onlyTumor() {
-
-    setVisibility('lateral', false);
-
-    setVisibility('medial', false);
-
-    setVisibility('tumor', true);
-
-}
-
-// ============================================
-// IDENTIFICAR GEOMETRÍAS
-// ============================================
-
-function identifyStructures() {
-
-    api.getSceneGraph(function(error, graph) {
-
-        if (error || !graph) {
-
-            console.error(error);
-
-            setStatus(
-                'Error al leer la jerarquía del modelo.'
-            );
-
-            return;
-
+            await applyVisibility(key, visible);
         }
-
-        console.log('Jerarquía completa:', graph);
-
-        let missing = [];
-
-        Object.keys(structures).forEach(key => {
-
-            const structure = structures[key];
-
-            const group = findNodeByName(
-                graph,
-                structure.groupName
-            );
-
-            if (!group) {
-
-                missing.push(structure.groupName);
-
-                return;
-
-            }
-
-            structure.geometryIds = collectGeometries(group);
-
-            console.log(
-                'Estructura:',
-                key,
-                'Geometrías:',
-                structure.geometryIds
-            );
-
-            if (structure.geometryIds.length === 0) {
-
-                missing.push(structure.groupName);
-
-            }
-
-        });
-
-        if (missing.length > 0) {
-
-            setStatus(
-                'No se pudieron identificar: ' +
-                missing.join(', ')
-            );
-
-            return;
-
-        }
-
-        // Activar botones
-
-        document.querySelectorAll(
-            '.control'
-        ).forEach(button => {
-
-            button.disabled = false;
-
-        });
 
         updateButtons();
 
+        setStatus("Visibilidad actualizada correctamente.");
+
+    } catch (error) {
+
+        console.error("Error al cambiar visibilidad:", error);
+
         setStatus(
-            'Modelo listo. Puedes mostrar y ocultar las estructuras.'
+            "Error al modificar la visibilidad. Consulta la consola."
         );
 
-    });
+    } finally {
 
+        busy = false;
+        setControlsEnabled(true);
+    }
 }
 
-// ============================================
-// INICIALIZAR VISOR SKETCHFAB
-// ============================================
+function toggleStructure(key) {
 
-const client = new Sketchfab(iframe);
+    changeVisibility({
+        [key]: !structures[key].visible
+    });
+}
+
+function isolate(key) {
+
+    changeVisibility({
+        medial: key === "medial",
+        lateral: key === "lateral",
+        tumor: key === "tumor"
+    });
+}
+
+function showAll() {
+
+    changeVisibility({
+        medial: true,
+        lateral: true,
+        tumor: true
+    });
+}
 
 client.init(MODEL_UID, {
 
     autostart: 1,
-
     ui_infos: 0,
-
     ui_controls: 1,
-
     ui_stop: 0,
 
     success: function(instance) {
@@ -541,9 +385,70 @@ client.init(MODEL_UID, {
 
         api.start();
 
-        api.addEventListener('viewerready', function() {
+        api.addEventListener("viewerready", function() {
 
-            identifyStructures();
+            api.getSceneGraph(function(error, graph) {
+
+                if (error || !graph) {
+
+                    console.error(error);
+
+                    setStatus("No fue posible leer la estructura del modelo.");
+
+                    return;
+                }
+
+                console.log("Jerarquía Sketchfab:", graph);
+
+                let allFound = true;
+
+                for (const key of Object.keys(structures)) {
+
+                    const structure = structures[key];
+
+                    const node = findGroup(graph, structure.name);
+
+                    if (node) {
+
+                        structure.id = node.instanceID;
+
+                        console.log(
+                            structure.name,
+                            "ID:",
+                            structure.id
+                        );
+
+                    } else {
+
+                        allFound = false;
+
+                        console.error(
+                            "No encontrado:",
+                            structure.name
+                        );
+                    }
+                }
+
+                if (!allFound) {
+
+                    setStatus(
+                        "No se encontraron todas las estructuras."
+                    );
+
+                    return;
+                }
+
+                ready = true;
+
+                updateButtons();
+
+                setControlsEnabled(true);
+
+                setStatus(
+                    "Modelo listo. Utiliza los botones para mostrar, ocultar o aislar estructuras."
+                );
+
+            });
 
         });
 
@@ -551,36 +456,11 @@ client.init(MODEL_UID, {
 
     error: function() {
 
-        setStatus(
-            'Error al cargar el modelo de Sketchfab.'
-        );
+        setStatus("Error al cargar el modelo de Sketchfab.");
 
     }
 
 });
-
-// ============================================
-// EVENTOS DE BOTONES
-// ============================================
-
-document.querySelectorAll('[data-node]').forEach(button => {
-
-    button.addEventListener('click', function() {
-
-        toggleStructure(this.dataset.node);
-
-    });
-
-});
-
-document.getElementById('show-all')
-    .addEventListener('click', showAll);
-
-document.getElementById('hide-tumor')
-    .addEventListener('click', hideTumor);
-
-document.getElementById('only-tumor')
-    .addEventListener('click', onlyTumor);
 
 </script>
 
