@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>Húmero proximal — Modelo 3D interactivo</title>
+<title>Húmero proximal | Modelo 3D interactivo</title>
 
 <style>
+
 * {
     box-sizing: border-box;
 }
@@ -19,8 +21,8 @@ body {
 
 .container {
     display: flex;
-    height: 100vh;
     width: 100vw;
+    height: 100vh;
 }
 
 .viewer {
@@ -36,34 +38,37 @@ iframe {
 }
 
 .panel {
-    width: 320px;
-    padding: 20px;
-    background: #fff;
+    width: 330px;
+    padding: 22px;
+    background: white;
     box-shadow: -2px 0 8px #0002;
     overflow-y: auto;
 }
 
 h2 {
-    font-size: 20px;
-    margin: 0 0 12px;
+    font-size: 21px;
+    margin: 0 0 14px;
+    color: #222;
 }
 
 p {
     font-size: 14px;
     color: #444;
-    line-height: 1.5;
+    line-height: 1.6;
 }
 
 button {
+    display: block;
     width: 100%;
-    padding: 12px;
+    padding: 13px;
     margin-bottom: 10px;
     border: 1px solid #ccc;
-    border-radius: 6px;
+    border-radius: 7px;
     background: #f7f7f7;
     text-align: left;
     cursor: pointer;
     font-size: 14px;
+    transition: background 0.2s;
 }
 
 button:hover {
@@ -71,17 +76,17 @@ button:hover {
 }
 
 button:disabled {
-    opacity: 0.55;
+    opacity: 0.5;
     cursor: wait;
 }
 
 button.active {
-    background: #e6f4ea;
+    background: #e4f3e8;
     border-color: #80b894;
 }
 
 button.inactive {
-    background: #f5e6e6;
+    background: #f7e6e6;
     border-color: #d6aaaa;
 }
 
@@ -90,18 +95,20 @@ button.inactive {
     background: #e6f0ff;
 }
 
-.note {
-    font-size: 12px;
-    color: #666;
-}
-
 #status {
     font-size: 12px;
     color: #555;
-    margin-bottom: 12px;
+    margin-bottom: 15px;
+}
+
+.note {
+    font-size: 12px;
+    color: #777;
+    margin-top: 20px;
 }
 
 @media (max-width: 700px) {
+
     .container {
         flex-direction: column;
         height: 100dvh;
@@ -116,7 +123,9 @@ button.inactive {
         flex: 1;
         box-shadow: 0 -2px 8px #0002;
     }
+
 }
+
 </style>
 </head>
 
@@ -125,12 +134,14 @@ button.inactive {
 <div class="container">
 
     <div class="viewer">
+
         <iframe
             id="api-frame"
-            title="Modelo 3D de húmero proximal"
+            title="Modelo tridimensional de húmero proximal"
             allow="autoplay; fullscreen; xr-spatial-tracking"
             allowfullscreen>
         </iframe>
+
     </div>
 
     <aside class="panel">
@@ -139,11 +150,11 @@ button.inactive {
 
         <p>
             Reconstrucción tridimensional del húmero proximal
-            y componente tumoral para evaluación anatómica
+            con componente tumoral para evaluación anatómica
             y planificación quirúrgica.
         </p>
 
-        <div id="status" role="status">
+        <div id="status">
             Cargando modelo...
         </div>
 
@@ -185,37 +196,36 @@ button.inactive {
 <script>
 
 // ============================================
-// CONFIGURACIÓN DEL MODELO
+// CONFIGURACIÓN
 // ============================================
 
-const modelUID = 'a8138671e7894bb9abd2950221cb03c2';
+const MODEL_UID = 'a8138671e7894bb9abd2950221cb03c2';
 
 const iframe = document.getElementById('api-frame');
+
 const statusElement = document.getElementById('status');
 
 let api = null;
 
-// Nombres identificados en Sketchfab.
-// Utilizamos MatrixTransform para controlar
-// las estructuras principales.
+// Nombres originales de los grupos de Sketchfab
 
 const structures = {
 
     lateral: {
-        name: 'HumeroLatS_2',
-        id: null,
+        groupName: 'HumeroLatS',
+        geometryIds: [],
         visible: true
     },
 
     medial: {
-        name: 'HumeroMedS_0',
-        id: null,
+        groupName: 'HumeroMedS',
+        geometryIds: [],
         visible: true
     },
 
     tumor: {
-        name: 'HumeroTumS_1',
-        id: null,
+        groupName: 'HumeroTumS',
+        geometryIds: [],
         visible: true
     }
 
@@ -226,28 +236,109 @@ const structures = {
 // ============================================
 
 function setStatus(message) {
+
     statusElement.textContent = message;
+
 }
 
 // ============================================
-// MOSTRAR Y OCULTAR
+// OBTENER GEOMETRÍAS DESCENDIENTES
+// ============================================
+
+function collectGeometries(node, result = []) {
+
+    if (!node) {
+        return result;
+    }
+
+    if (
+        node.type === 'Geometry' &&
+        node.instanceID !== undefined
+    ) {
+
+        result.push(node.instanceID);
+
+    }
+
+    if (Array.isArray(node.children)) {
+
+        node.children.forEach(child => {
+
+            collectGeometries(child, result);
+
+        });
+
+    }
+
+    return result;
+
+}
+
+// ============================================
+// BUSCAR GRUPO POR NOMBRE
+// ============================================
+
+function findNodeByName(node, name) {
+
+    if (!node) {
+        return null;
+    }
+
+    if (
+        node.name === name &&
+        node.type === 'Group'
+    ) {
+
+        return node;
+
+    }
+
+    if (Array.isArray(node.children)) {
+
+        for (const child of node.children) {
+
+            const found = findNodeByName(child, name);
+
+            if (found) {
+                return found;
+            }
+
+        }
+
+    }
+
+    return null;
+
+}
+
+// ============================================
+// MOSTRAR / OCULTAR ESTRUCTURA
 // ============================================
 
 function setVisibility(key, show) {
 
     const structure = structures[key];
 
-    if (!api || !structure || structure.id === null) {
+    if (
+        !api ||
+        !structure ||
+        structure.geometryIds.length === 0
+    ) {
         return;
     }
 
     const method = show ? 'show' : 'hide';
 
-    api[method](structure.id);
+    structure.geometryIds.forEach(id => {
+
+        api[method](id);
+
+    });
 
     structure.visible = show;
 
     updateButtons();
+
 }
 
 // ============================================
@@ -263,6 +354,7 @@ function toggleStructure(key) {
     }
 
     setVisibility(key, !structure.visible);
+
 }
 
 // ============================================
@@ -274,9 +366,12 @@ function updateButtons() {
     document.querySelectorAll('[data-node]').forEach(button => {
 
         const key = button.dataset.node;
+
         const structure = structures[key];
 
-        if (!structure) return;
+        if (!structure) {
+            return;
+        }
 
         button.classList.toggle(
             'active',
@@ -294,6 +389,7 @@ function updateButtons() {
         );
 
     });
+
 }
 
 // ============================================
@@ -303,7 +399,9 @@ function updateButtons() {
 function showAll() {
 
     Object.keys(structures).forEach(key => {
+
         setVisibility(key, true);
+
     });
 
 }
@@ -325,71 +423,83 @@ function hideTumor() {
 function onlyTumor() {
 
     setVisibility('lateral', false);
+
     setVisibility('medial', false);
+
     setVisibility('tumor', true);
 
 }
 
 // ============================================
-// IDENTIFICAR NODOS
+// IDENTIFICAR GEOMETRÍAS
 // ============================================
 
-function identifyNodes() {
+function identifyStructures() {
 
-    api.getNodeMap(function(error, nodes) {
+    api.getSceneGraph(function(error, graph) {
 
-        if (error) {
-
-            setStatus(
-                'Error al identificar las estructuras.'
-            );
+        if (error || !graph) {
 
             console.error(error);
 
+            setStatus(
+                'Error al leer la jerarquía del modelo.'
+            );
+
             return;
+
         }
 
-        console.log('Nodos de Sketchfab:', nodes);
+        console.log('Jerarquía completa:', graph);
+
+        let missing = [];
 
         Object.keys(structures).forEach(key => {
 
             const structure = structures[key];
 
-            const matchingNode = Object.values(nodes).find(node =>
-
-                node.name === structure.name &&
-                node.type === 'MatrixTransform'
-
+            const group = findNodeByName(
+                graph,
+                structure.groupName
             );
 
-            if (matchingNode) {
+            if (!group) {
 
-                structure.id = matchingNode.instanceID;
+                missing.push(structure.groupName);
 
-                console.log(
-                    'Estructura identificada:',
-                    key,
-                    structure.name,
-                    structure.id
-                );
+                return;
+
+            }
+
+            structure.geometryIds = collectGeometries(group);
+
+            console.log(
+                'Estructura:',
+                key,
+                'Geometrías:',
+                structure.geometryIds
+            );
+
+            if (structure.geometryIds.length === 0) {
+
+                missing.push(structure.groupName);
 
             }
 
         });
 
-        const missing = Object.keys(structures).filter(
-            key => structures[key].id === null
-        );
-
         if (missing.length > 0) {
 
             setStatus(
-                'No se encontraron algunas estructuras: ' +
+                'No se pudieron identificar: ' +
                 missing.join(', ')
             );
 
             return;
+
         }
+
+        // Activar botones
 
         document.querySelectorAll(
             '.control'
@@ -402,7 +512,7 @@ function identifyNodes() {
         updateButtons();
 
         setStatus(
-            'Modelo listo. Selecciona las estructuras que deseas visualizar.'
+            'Modelo listo. Puedes mostrar y ocultar las estructuras.'
         );
 
     });
@@ -410,12 +520,12 @@ function identifyNodes() {
 }
 
 // ============================================
-// INICIALIZAR SKETCHFAB
+// INICIALIZAR VISOR SKETCHFAB
 // ============================================
 
 const client = new Sketchfab(iframe);
 
-client.init(modelUID, {
+client.init(MODEL_UID, {
 
     autostart: 1,
 
@@ -433,7 +543,7 @@ client.init(modelUID, {
 
         api.addEventListener('viewerready', function() {
 
-            identifyNodes();
+            identifyStructures();
 
         });
 
