@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Modelo 3D — Húmero proximal con tumor</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f4f4f4}.container{display:flex;height:100vh;width:100vw}.viewer{flex:1;min-width:0;background:#111}iframe{width:100%;height:100%;border:0}.panel{width:320px;padding:20px;background:#fff;box-shadow:-2px 0 8px #0002;overflow-y:auto}h2{font-size:20px;margin:0 0 12px}p{font-size:14px;color:#444;line-height:1.5}button{width:100%;padding:12px;margin:0 0 10px;border:1px solid #ccc;border-radius:6px;background:#f7f7f7;text-align:left;cursor:pointer;font-size:14px}button:hover{background:#e8eff8}button:disabled{opacity:.55;cursor:wait}.main{font-weight:bold;background:#e6f0ff}.note{font-size:12px;color:#666}#status{font-size:12px;color:#555;margin-bottom:12px}@media(max-width:700px){.container{flex-direction:column}.viewer{min-height:55vh}.panel{width:100%;flex:1;box-shadow:0 -2px 8px #0002}}
+</style>
+</head>
+<body>
+<div class="container"><div class="viewer"><iframe id="api-frame" title="Modelo 3D de húmero proximal" allow="autoplay; fullscreen; xr-spatial-tracking" allowfullscreen></iframe></div>
+<aside class="panel"><h2>Húmero proximal — modelo 3D interactivo</h2><p>Segmentación anatómica del húmero proximal y componente tumoral. Selecciona las estructuras que deseas visualizar.</p><div id="status" role="status">Cargando modelo…</div>
+<button class="control" data-node="HumeroLatS" disabled>Mostrar / ocultar húmero lateral</button>
+<button class="control" data-node="HumeroMedS" disabled>Mostrar / ocultar húmero medial</button>
+<button class="control" data-node="HumeroTumS" disabled>Mostrar / ocultar tumor</button>
+<button class="control main" id="show-all" disabled>Mostrar todo</button>
+<button class="control main" id="hide-tumor" disabled>Ocultar tumor</button>
+<button class="control main" id="only-tumor" disabled>Mostrar solo tumor</button>
+<p class="note">Si algún control no funciona, revisa los nombres exactos de los nodos en Sketchfab. Modelo orientativo para planificación quirúrgica; no sustituye la evaluación de imágenes originales.</p></aside></div>
+<script src="https://static.sketchfab.com/api/sketchfab-viewer-1.12.1.js"></script>
+<script>
+const modelUID='a8138671e7894bb9abd2950221cb03c2';
+const iframe=document.getElementById('api-frame');
+const status=document.getElementById('status');
+const targetNames=['HumeroLatS','HumeroMedS','HumeroTumS'];
+const nodeIds={};const visible={};let api=null;
+function setStatus(message){status.textContent=message;}
+function setVisibility(name,show){if(!api||nodeIds[name]===undefined)return;api[show?'show':'hide'](nodeIds[name]);visible[name]=show;}
+function toggle(name){setVisibility(name,!visible[name]);}
+function ready(){document.querySelectorAll('.control').forEach(b=>b.disabled=false);setStatus('Modelo listo. Puedes mostrar u ocultar estructuras.');}
+const client=new Sketchfab(iframe);
+client.init(modelUID,{autostart:1,ui_infos:0,ui_controls:1,ui_stop:0,success:function(instance){api=instance;api.start();api.addEventListener('viewerready',function(){api.getNodeMap(function(err,nodes){if(err){setStatus('No se pudo leer la jerarquía del modelo.');return;}Object.values(nodes).forEach(node=>{if(targetNames.includes(node.name)&&nodeIds[node.name]===undefined){nodeIds[node.name]=node.instanceID;visible[node.name]=true;}});const missing=targetNames.filter(n=>nodeIds[n]===undefined);if(missing.length){setStatus('No se encontraron estos nodos: '+missing.join(', ')+'. Comprueba sus nombres en Sketchfab.');console.log('Nodos disponibles:',Object.values(nodes).map(n=>n.name));}else{ready();}});});},error:function(){setStatus('Error al cargar Sketchfab. Comprueba que el modelo sea accesible.');}});
+document.querySelectorAll('[data-node]').forEach(b=>b.addEventListener('click',()=>toggle(b.dataset.node)));
+document.getElementById('show-all').addEventListener('click',()=>targetNames.forEach(n=>setVisibility(n,true)));
+document.getElementById('hide-tumor').addEventListener('click',()=>setVisibility('HumeroTumS',false));
+document.getElementById('only-tumor').addEventListener('click',()=>targetNames.forEach(n=>setVisibility(n,n==='HumeroTumS')));
+</script>
+</body></html>
