@@ -2,7 +2,7 @@
 
 Visor interactivo del modelo de húmero proximal con tumor, basado en la Sketchfab Viewer API.
 
-Modelo Sketchfab: https://sketchfab.com/3d-models/humero-proximal-tumor-a8138671e7894bb9abd2950221cb03c2
+Modelo Sketchfab: [https://sketchfab.com/3d-models/humero-proximal-tumor-a8138671e7894bb9abd2950221cb03c2](https://sketchfab.com/3d-models/humero-proximal-nuevo-66e1a9ed57034f58b20f9efe1dc34187)
 
 ## Publicar en GitHub Pages
 1. Crear un repositorio público `humero-proximal-interactivo`.
